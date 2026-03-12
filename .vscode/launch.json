@@ -9,5 +9,14 @@
         "--verbose"
       ]
     },
+    {
+      "name": "[WEB] Amaris test",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "web-server",
+        "--verbose",
+      ]
+    }
   ]
 }
