@@ -20,7 +20,7 @@ This project uses **SST v4**, so it does **not** require CDK dependencies (`aws-
 ## Local deploy
 
 ```bash
-cd infrastructure
+cd aws
 pnpm install --frozen-lockfile
 AWS_REGION=us-east-1 npx sst deploy --region us-east-1
 ```
