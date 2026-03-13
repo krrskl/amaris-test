@@ -1,1 +1,22 @@
 include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  plugins:
+    - custom_lint
+  exclude:
+    - '**/*.freezed.dart'
+    - '**/*.g.dart'
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    - avoid_catches_without_on_clauses
+    - avoid_print
+    - avoid_void_async
+    - discarded_futures
+    - only_throw_errors
+    - unawaited_futures
+    - use_rethrow_when_possible
