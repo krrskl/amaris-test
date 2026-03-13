@@ -1,0 +1,14 @@
+{
+  "name": "amaris-web-infra",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "sst deploy",
+    "dev": "sst dev",
+    "remove": "sst remove"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "sst": "4.2.7"
+  }
+}
