@@ -26,13 +26,13 @@ const appDestinations = <AppDestination>[
     label: 'Home',
     path: AppRoutePaths.home,
     icon: Icons.home_outlined,
-    title: 'Portfolio Home',
+    title: 'Portfolio',
   ),
   AppDestination(
     label: 'Funds',
     path: AppRoutePaths.funds,
     icon: Icons.account_balance_wallet_outlined,
-    title: 'Fund Catalog',
+    title: 'Funds',
   ),
   AppDestination(
     label: 'Transactions',
