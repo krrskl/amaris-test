@@ -9,6 +9,7 @@ import 'package:amaris_test/features/portfolio/state/portfolio_notifier.dart';
 import 'package:amaris_test/features/portfolio/state/portfolio_queries.dart';
 import 'package:amaris_test/features/settings/domain/models/user_preferences.dart';
 import 'package:amaris_test/features/settings/state/user_preferences_notifier.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -30,7 +31,7 @@ class HomePage extends ConsumerWidget {
         error: (error, _) {
           final message = error is PortfolioFailure
               ? error.friendlyMessage
-              : 'Operation failed';
+              : context.t.home.operationFailed;
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
@@ -50,22 +51,29 @@ class HomePage extends ConsumerWidget {
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (dialogContext) => AlertDialog(
-                  title: const Text('Cancel this subscription?'),
+                  title: Text(context.t.home.cancelDialogTitle),
                   content: Text(
-                    'You will stop contributions to ${holding.fundName} and ${formatCop(holding.subscribedAmountCop)} will return to your available balance.',
+                    context.t.home.cancelDialogMessage(
+                      fundName: holding.fundName,
+                      amount: formatCop(holding.subscribedAmountCop),
+                    ),
                   ),
                   actions: [
                     Semantics(
                       button: true,
-                      label: 'Keep current subscription to ${holding.fundName}',
+                      label: context.t.home.keepSubscriptionSemantics(
+                        fundName: holding.fundName,
+                      ),
                       child: TextButton(
                         onPressed: () => Navigator.of(dialogContext).pop(false),
-                        child: const Text('Keep subscription'),
+                        child: Text(context.t.home.keepSubscription),
                       ),
                     ),
                     Semantics(
                       button: true,
-                      label: 'Confirm cancellation for ${holding.fundName}',
+                      label: context.t.home.cancelSubscriptionSemantics(
+                        fundName: holding.fundName,
+                      ),
                       child: FilledButton(
                         style: FilledButton.styleFrom(
                           backgroundColor: Theme.of(
@@ -76,7 +84,7 @@ class HomePage extends ConsumerWidget {
                           ).colorScheme.onError,
                         ),
                         onPressed: () => Navigator.of(dialogContext).pop(true),
-                        child: const Text('Cancel subscription'),
+                        child: Text(context.t.home.cancelSubscription),
                       ),
                     ),
                   ],
@@ -99,7 +107,11 @@ class HomePage extends ConsumerWidget {
             final state = ref.read(portfolioAsyncNotifierProvider);
             if (!state.hasError) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${holding.fundName} canceled')),
+                SnackBar(
+                  content: Text(
+                    context.t.home.cancelledMessage(fundName: holding.fundName),
+                  ),
+                ),
               );
             }
           },
@@ -117,6 +129,7 @@ class _SummarySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tr = context.t;
     final totalPortfolioValue = holdings.when(
       data: (items) {
         final total = items.fold<int>(
@@ -125,13 +138,14 @@ class _SummarySection extends StatelessWidget {
         );
         return formatCop(total);
       },
-      loading: () => 'Loading...',
-      error: (error, stack) => 'Unavailable',
+      loading: () => tr.home.summaryLoading,
+      error: (error, stack) => tr.home.summaryUnavailable,
     );
     final activeHoldingsLabel = holdings.when(
-      data: (items) => '${items.length} active subscriptions',
-      loading: () => 'Checking subscriptions',
-      error: (error, stack) => 'Subscriptions unavailable',
+      data: (items) =>
+          tr.home.summaryActiveSubscriptions(count: '${items.length}'),
+      loading: () => tr.home.summaryCheckingSubscriptions,
+      error: (error, stack) => tr.home.summarySubscriptionsUnavailable,
     );
 
     return Card(
@@ -141,7 +155,7 @@ class _SummarySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Total portfolio',
+              tr.home.summaryTotalPortfolio,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -179,16 +193,17 @@ class _HoldingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.t;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Holdings by fund',
+          tr.home.holdingsTitle,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Review your active subscriptions and cancel when needed.',
+          tr.home.holdingsSubtitle,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -197,11 +212,10 @@ class _HoldingsSection extends StatelessWidget {
         holdings.when(
           data: (items) {
             if (items.isEmpty) {
-              return const _HoldingsStateCard(
+              return _HoldingsStateCard(
                 icon: Icons.account_balance_wallet_outlined,
-                title: 'No active holdings yet',
-                message:
-                    'Your subscribed funds will appear here once you complete your first subscription.',
+                title: tr.home.holdingsEmptyTitle,
+                message: tr.home.holdingsEmptyMessage,
               );
             }
 
@@ -224,12 +238,10 @@ class _HoldingsSection extends StatelessWidget {
               ),
             );
           },
-          loading: () => const CenteredLoadingIndicator(
-            message: 'Loading active holdings...',
-          ),
+          loading: () => const CenteredLoadingIndicator(message: null),
           error: (error, stack) => CenteredErrorText(
-            title: 'Could not load holdings',
-            message: 'Please try again in a moment.',
+            title: tr.home.holdingsErrorTitle,
+            message: tr.home.holdingsErrorMessage,
             onRetry: onRetry,
           ),
         ),
@@ -255,8 +267,10 @@ class _HoldingCard extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label:
-          'Holding in ${holding.fundName}, amount ${formatCop(holding.subscribedAmountCop)}.',
+      label: context.t.home.holdingSemantics(
+        fundName: holding.fundName,
+        amount: formatCop(holding.subscribedAmountCop),
+      ),
       child: Row(
         children: [
           _HoldingTag(label: _holdingTagLabel(holding.fundName)),
@@ -286,10 +300,12 @@ class _HoldingCard extends StatelessWidget {
             order: NumericFocusOrder(traversalOrder.toDouble()),
             child: Semantics(
               button: true,
-              label: 'Cancel subscription for ${holding.fundName}',
+              label: context.t.home.cancelButtonSemantics(
+                fundName: holding.fundName,
+              ),
               child: OutlinedButton(
                 onPressed: onCancel,
-                child: const Text('Cancel'),
+                child: Text(context.t.home.cancelButton),
               ),
             ),
           ),

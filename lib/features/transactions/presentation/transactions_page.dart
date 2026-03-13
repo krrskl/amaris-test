@@ -3,6 +3,7 @@ import 'package:amaris_test/core/ui/formatters/app_formatters.dart';
 import 'package:amaris_test/core/ui/theme/app_spacing.dart';
 import 'package:amaris_test/core/ui/widgets/async_state_widgets.dart';
 import 'package:amaris_test/features/portfolio/state/portfolio_queries.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,14 +13,18 @@ class TransactionsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactions = ref.watch(transactionsProvider);
+    final tr = context.t;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Recent activity', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          tr.transactions.title,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Latest subscriptions and cancellations',
+          tr.transactions.subtitle,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -36,7 +41,7 @@ class TransactionsPage extends ConsumerWidget {
             },
             loading: () => const CenteredLoadingIndicator(),
             error: (error, stack) =>
-                const CenteredErrorText(message: 'Failed to load history'),
+                CenteredErrorText(message: tr.transactions.loadError),
           ),
         ),
       ],
@@ -72,13 +77,13 @@ class _TransactionsEmptyState extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'No transactions yet',
+                    context.t.transactions.emptyTitle,
                     style: theme.textTheme.titleMedium,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Your buy and sell activity will appear here once you make your first movement.',
+                    context.t.transactions.emptyMessage,
                     style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -134,7 +139,7 @@ class _TransactionCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    _metadataLabel(record),
+                    _metadataLabel(context, record),
                     style: textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -171,27 +176,27 @@ Color _amountColor(ColorScheme colorScheme, TransactionType type) {
   };
 }
 
-String _typeLabel(TransactionType type) {
+String _typeLabel(BuildContext context, TransactionType type) {
   return switch (type) {
-    TransactionType.subscription => 'Subscription',
-    TransactionType.cancellation => 'Cancellation',
+    TransactionType.subscription => context.t.transactions.typeSubscription,
+    TransactionType.cancellation => context.t.transactions.typeCancellation,
   };
 }
 
-String _notificationLabel(NotificationMethod method) {
+String _notificationLabel(BuildContext context, NotificationMethod method) {
   return switch (method) {
     NotificationMethod.email => 'Email',
     NotificationMethod.sms => 'SMS',
-    NotificationMethod.none => 'No notification',
+    NotificationMethod.none => context.t.transactions.notificationNone,
   };
 }
 
-String _metadataLabel(TransactionRecord record) {
-  final typeLabel = _typeLabel(record.type);
+String _metadataLabel(BuildContext context, TransactionRecord record) {
+  final typeLabel = _typeLabel(context, record.type);
 
   if (record.type == TransactionType.cancellation) {
     return typeLabel;
   }
 
-  return '$typeLabel - ${_notificationLabel(record.notificationMethod)}';
+  return '$typeLabel - ${_notificationLabel(context, record.notificationMethod)}';
 }

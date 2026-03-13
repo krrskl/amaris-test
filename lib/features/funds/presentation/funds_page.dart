@@ -6,6 +6,7 @@ import 'package:amaris_test/core/ui/widgets/async_state_widgets.dart';
 import 'package:amaris_test/features/funds/state/funds_providers.dart';
 import 'package:amaris_test/features/funds/state/subscription_dialog_form_provider.dart';
 import 'package:amaris_test/features/portfolio/state/portfolio_notifier.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,6 +15,7 @@ class FundsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = context.t;
     final funds = ref.watch(filteredFundsProvider);
     final hasActiveFilters = ref.watch(hasActiveFundFiltersProvider);
     final availableBalanceCop = ref.watch(availableBalanceForFundsProvider);
@@ -24,7 +26,10 @@ class FundsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('All funds', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          tr.funds.pageTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.sm),
         const _FundsFilters(),
         const SizedBox(height: AppSpacing.md),
@@ -65,12 +70,10 @@ class FundsPage extends ConsumerWidget {
                 },
               );
             },
-            loading: () => const CenteredLoadingIndicator(
-              message: 'Loading available funds...',
-            ),
+            loading: () => const CenteredLoadingIndicator(message: null),
             error: (error, stack) => CenteredErrorText(
-              title: 'We could not load funds',
-              message: 'Check your connection and try again.',
+              title: tr.funds.errorTitle,
+              message: tr.funds.errorMessage,
               onRetry: () => ref.invalidate(filteredFundsProvider),
             ),
           ),
@@ -103,9 +106,9 @@ class FundsPage extends ConsumerWidget {
     if (wasSubmitted == true && context.mounted) {
       final state = ref.read(portfolioAsyncNotifierProvider);
       if (!state.hasError) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Subscription completed')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.t.funds.subscriptionCompleted)),
+        );
       }
     }
   }
@@ -126,14 +129,14 @@ class _FundsFilters extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SearchBar(
-              hintText: 'Search funds by name',
+              hintText: context.t.funds.searchHint,
               leading: const Icon(Icons.search),
               onChanged: (value) {
                 ref.read(fundSearchQueryProvider.notifier).state = value;
               },
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text('Fund type', style: textTheme.labelMedium),
+            Text(context.t.funds.fundTypeLabel, style: textTheme.labelMedium),
             const SizedBox(height: AppSpacing.xs),
             SizedBox(
               width: double.infinity,
@@ -192,8 +195,11 @@ class _FundCard extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label:
-          'Fund ${fund.name}. Minimum ${formatCop(fund.minimumAmountCop)}. Type $categoryLabel.',
+      label: context.t.funds.fundCardSemantics(
+        fundName: fund.name,
+        minimum: formatCop(fund.minimumAmountCop),
+        type: categoryLabel,
+      ),
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -213,7 +219,7 @@ class _FundCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Minimum',
+                        context.t.funds.minimumLabel,
                         style: textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -230,7 +236,7 @@ class _FundCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Type',
+                        context.t.funds.typeLabel,
                         style: textTheme.labelMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -296,15 +302,17 @@ class _FundsEmptyState extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Text(
-                  hasActiveFilters ? 'No matching funds' : 'No funds available',
+                  hasActiveFilters
+                      ? context.t.funds.emptyNoMatchTitle
+                      : context.t.funds.emptyNoFundsTitle,
                   style: theme.textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   hasActiveFilters
-                      ? 'Update your search or filter type to find a fund.'
-                      : 'Funds will appear here as soon as data is available.',
+                      ? context.t.funds.emptyNoMatchMessage
+                      : context.t.funds.emptyNoFundsMessage,
                   style: theme.textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -312,7 +320,7 @@ class _FundsEmptyState extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
                   FilledButton.tonal(
                     onPressed: onClearFilters,
-                    child: const Text('Clear filters and show all funds'),
+                    child: Text(context.t.funds.clearFilters),
                   ),
                 ],
               ],
@@ -344,10 +352,10 @@ class _SubscribeActionButton extends StatelessWidget {
         order: NumericFocusOrder(traversalOrder.toDouble()),
         child: Semantics(
           button: true,
-          label: 'Subscribe to $fundName',
+          label: context.t.funds.subscribeSemantics(fundName: fundName),
           child: FilledButton(
             onPressed: onSubscribe,
-            child: const Text('Subscribe'),
+            child: Text(context.t.funds.subscribeButton),
           ),
         ),
       );
@@ -358,19 +366,20 @@ class _SubscribeActionButton extends StatelessWidget {
       order: NumericFocusOrder(traversalOrder.toDouble()),
       child: Tooltip(
         key: tooltipKey,
-        message: 'Insufficient balance',
+        message: context.t.funds.insufficientBalance,
         triggerMode: TooltipTriggerMode.manual,
         child: Semantics(
           button: true,
           enabled: false,
-          label:
-              'Subscribe to $fundName unavailable due to insufficient balance',
+          label: context.t.funds.subscribeUnavailableSemantics(
+            fundName: fundName,
+          ),
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => tooltipKey.currentState?.ensureTooltipVisible(),
-            child: const FilledButton(
+            child: FilledButton(
               onPressed: null,
-              child: Text('Subscribe'),
+              child: Text(context.t.funds.subscribeButton),
             ),
           ),
         ),
@@ -390,21 +399,22 @@ class _SubscriptionDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = context.t;
     final formProvider = subscriptionDialogFormProvider(
       initialNotificationMethod: initialNotificationMethod,
     );
     final form = ref.watch(formProvider);
 
     return AlertDialog(
-      title: Text('Subscribe to ${fund.name}'),
+      title: Text(tr.funds.subscriptionDialog.title(fundName: fund.name)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Amount (COP)',
-              hintText: '50000',
+            decoration: InputDecoration(
+              labelText: tr.funds.subscriptionDialog.amountLabel,
+              hintText: tr.funds.subscriptionDialog.amountHint,
             ),
             onChanged: ref.read(formProvider.notifier).setAmountInput,
           ),
@@ -412,19 +422,21 @@ class _SubscriptionDialog extends ConsumerWidget {
           DropdownButtonFormField<NotificationMethod>(
             key: ValueKey(form.selectedNotification),
             initialValue: form.selectedNotification,
-            decoration: const InputDecoration(labelText: 'Notification method'),
-            items: const [
+            decoration: InputDecoration(
+              labelText: tr.funds.subscriptionDialog.notificationMethodLabel,
+            ),
+            items: [
               DropdownMenuItem(
                 value: NotificationMethod.none,
-                child: Text('Select one'),
+                child: Text(tr.funds.subscriptionDialog.notificationSelectOne),
               ),
               DropdownMenuItem(
                 value: NotificationMethod.email,
-                child: Text('Email'),
+                child: Text(tr.settings.notificationEmail),
               ),
               DropdownMenuItem(
                 value: NotificationMethod.sms,
-                child: Text('SMS'),
+                child: Text(tr.settings.notificationSms),
               ),
             ],
             onChanged: (value) {
@@ -446,15 +458,17 @@ class _SubscriptionDialog extends ConsumerWidget {
       actions: [
         Semantics(
           button: true,
-          label: 'Close subscription dialog',
+          label: tr.funds.subscriptionDialog.closeSemantics,
           child: TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(tr.funds.subscriptionDialog.cancelButton),
           ),
         ),
         Semantics(
           button: true,
-          label: 'Confirm subscription to ${fund.name}',
+          label: tr.funds.subscriptionDialog.confirmSemantics(
+            fundName: fund.name,
+          ),
           child: FilledButton(
             onPressed: () async {
               final wasSubmitted = await ref
@@ -465,7 +479,7 @@ class _SubscriptionDialog extends ConsumerWidget {
                 Navigator.of(context).pop(true);
               }
             },
-            child: const Text('Confirm'),
+            child: Text(tr.funds.subscriptionDialog.confirmButton),
           ),
         ),
       ],

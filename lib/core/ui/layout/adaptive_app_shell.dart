@@ -8,6 +8,7 @@ import 'package:amaris_test/core/ui/theme/app_spacing.dart';
 import 'package:amaris_test/core/ui/theme/app_widths.dart';
 import 'package:amaris_test/features/funds/state/funds_providers.dart';
 import 'package:amaris_test/features/portfolio/state/portfolio_queries.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +25,7 @@ class AdaptiveAppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = context.t;
     final size = AppBreakpoints.fromContext(context);
     final currentIndex = destinationIndexFromLocation(currentLocation);
     void onSelectDestination(int index) {
@@ -34,7 +36,7 @@ class AdaptiveAppShell extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(appDestinations[currentIndex].title),
+        title: Text(appDestinations[currentIndex].title(tr)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
@@ -138,14 +140,14 @@ class _BalanceBadge extends ConsumerWidget {
     return balance.when(
       data: (snapshot) => _BalanceBadgeSurface(
         icon: Icons.account_balance_wallet_outlined,
-        label: 'Available',
+        label: context.t.shell.balanceLabel,
         value: formatCop(snapshot.amountCop),
       ),
       loading: () => const _BalanceBadgeLoading(),
-      error: (error, stack) => const _BalanceBadgeSurface(
+      error: (error, stack) => _BalanceBadgeSurface(
         icon: Icons.error_outline,
-        label: 'Portfolio',
-        value: 'Balance unavailable',
+        label: context.t.nav.homeTitle,
+        value: context.t.shell.balanceUnavailable,
       ),
     );
   }
@@ -239,11 +241,20 @@ class _ExpandedContextPanel extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Quick Stats', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.t.shell.quickStatsTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: AppSpacing.md),
-          _AsyncCountStatTile(label: 'Funds', value: funds),
-          _AsyncCountStatTile(label: 'Transactions', value: transactions),
-          _AsyncCountStatTile(label: 'Holdings', value: holdings),
+          _AsyncCountStatTile(label: context.t.nav.fundsTitle, value: funds),
+          _AsyncCountStatTile(
+            label: context.t.nav.transactionsTitle,
+            value: transactions,
+          ),
+          _AsyncCountStatTile(
+            label: context.t.home.holdingsTitle,
+            value: holdings,
+          ),
         ],
       ),
     );

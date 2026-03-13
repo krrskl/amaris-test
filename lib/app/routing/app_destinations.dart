@@ -1,17 +1,22 @@
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 
 class AppDestination {
   const AppDestination({
-    required this.label,
+    required this.labelBuilder,
     required this.path,
     required this.icon,
-    required this.title,
+    required this.titleBuilder,
   });
 
-  final String label;
+  final String Function(Translations) labelBuilder;
   final String path;
   final IconData icon;
-  final String title;
+  final String Function(Translations) titleBuilder;
+
+  String label(Translations t) => labelBuilder(t);
+
+  String title(Translations t) => titleBuilder(t);
 }
 
 abstract final class AppRoutePaths {
@@ -21,32 +26,41 @@ abstract final class AppRoutePaths {
   static const settings = '/settings';
 }
 
-const appDestinations = <AppDestination>[
+final appDestinations = <AppDestination>[
   AppDestination(
-    label: 'Home',
+    labelBuilder: _homeLabel,
     path: AppRoutePaths.home,
     icon: Icons.home_outlined,
-    title: 'Portfolio',
+    titleBuilder: _homeTitle,
   ),
   AppDestination(
-    label: 'Funds',
+    labelBuilder: _fundsLabel,
     path: AppRoutePaths.funds,
     icon: Icons.account_balance_wallet_outlined,
-    title: 'Funds',
+    titleBuilder: _fundsTitle,
   ),
   AppDestination(
-    label: 'Transactions',
+    labelBuilder: _transactionsLabel,
     path: AppRoutePaths.transactions,
     icon: Icons.receipt_long_outlined,
-    title: 'Transactions',
+    titleBuilder: _transactionsTitle,
   ),
   AppDestination(
-    label: 'Settings',
+    labelBuilder: _settingsLabel,
     path: AppRoutePaths.settings,
     icon: Icons.settings_outlined,
-    title: 'Settings',
+    titleBuilder: _settingsTitle,
   ),
 ];
+
+String _homeLabel(Translations t) => t.nav.homeLabel;
+String _homeTitle(Translations t) => t.nav.homeTitle;
+String _fundsLabel(Translations t) => t.nav.fundsLabel;
+String _fundsTitle(Translations t) => t.nav.fundsTitle;
+String _transactionsLabel(Translations t) => t.nav.transactionsLabel;
+String _transactionsTitle(Translations t) => t.nav.transactionsTitle;
+String _settingsLabel(Translations t) => t.nav.settingsLabel;
+String _settingsTitle(Translations t) => t.nav.settingsTitle;
 
 int destinationIndexFromLocation(String location) {
   for (var index = 0; index < appDestinations.length; index++) {

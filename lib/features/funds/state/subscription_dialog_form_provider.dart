@@ -2,6 +2,7 @@ import 'package:amaris_test/core/domain/errors/portfolio_failure.dart';
 import 'package:amaris_test/core/domain/models/fund.dart';
 import 'package:amaris_test/core/domain/models/transaction_record.dart';
 import 'package:amaris_test/features/portfolio/state/portfolio_notifier.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'subscription_dialog_form_provider.g.dart';
@@ -63,7 +64,9 @@ class SubscriptionDialogForm extends _$SubscriptionDialogForm {
   Future<bool> confirmSubscription({required Fund fund}) async {
     final amount = int.tryParse(state.amountInput.trim());
     if (amount == null || amount <= 0) {
-      state = state.copyWith(inlineErrorMessage: 'Enter a valid amount');
+      state = state.copyWith(
+        inlineErrorMessage: t.funds.subscriptionDialog.invalidAmount,
+      );
       return false;
     }
 
@@ -89,7 +92,7 @@ class SubscriptionDialogForm extends _$SubscriptionDialogForm {
         'Exception: ',
         '',
       ),
-      _ => 'Subscription failed',
+      _ => t.funds.subscriptionDialog.submissionFailed,
     };
 
     state = state.copyWith(inlineErrorMessage: message);

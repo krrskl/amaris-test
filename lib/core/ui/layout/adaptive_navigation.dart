@@ -1,3 +1,4 @@
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:amaris_test/app/routing/app_destinations.dart';
 import 'package:amaris_test/core/ui/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ class AdaptiveNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.t;
+
     switch (variant) {
       case AdaptiveNavigationVariant.bottom:
         return NavigationBar(
@@ -26,7 +29,7 @@ class AdaptiveNavigation extends StatelessWidget {
               .map(
                 (item) => NavigationDestination(
                   icon: Icon(item.icon),
-                  label: item.label,
+                  label: item.label(tr),
                 ),
               )
               .toList(),
@@ -41,7 +44,7 @@ class AdaptiveNavigation extends StatelessWidget {
               .map(
                 (item) => NavigationRailDestination(
                   icon: Icon(item.icon),
-                  label: Text(item.label),
+                  label: Text(item.label(tr)),
                 ),
               )
               .toList(),
@@ -60,7 +63,7 @@ class AdaptiveNavigation extends StatelessWidget {
                     selected: index == currentIndex,
                     onTap: () => onSelect(index),
                     leading: Icon(appDestinations[index].icon),
-                    title: Text(appDestinations[index].label),
+                    title: Text(appDestinations[index].label(tr)),
                   ),
                 ),
             ],
