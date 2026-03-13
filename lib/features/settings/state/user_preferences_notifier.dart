@@ -3,6 +3,7 @@ import 'package:amaris_test/core/data/persistence/persistence_constants.dart';
 import 'package:amaris_test/core/domain/models/transaction_record.dart';
 import 'package:amaris_test/features/settings/domain/models/user_preferences.dart';
 import 'package:amaris_test/features/settings/domain/repositories/user_preferences_repository.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce/hive.dart';
 
@@ -41,6 +42,20 @@ class UserPreferencesNotifier extends AsyncNotifier<UserPreferences> {
     }
 
     await _persist(current.copyWith(requireCancellationConfirmation: value));
+  }
+
+  Future<void> setPreferredLanguage(PreferredLanguage value) async {
+    final current = state.valueOrNull ?? await future;
+    if (current.preferredLanguage == value) {
+      return;
+    }
+
+    await _persist(current.copyWith(preferredLanguage: value));
+    final locale = switch (value) {
+      PreferredLanguage.en => AppLocale.en,
+      PreferredLanguage.esCo => AppLocale.esCo,
+    };
+    await LocaleSettings.setLocale(locale);
   }
 
   Future<void> resetPreferences() async {

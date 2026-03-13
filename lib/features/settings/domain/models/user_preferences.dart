@@ -5,21 +5,25 @@ class UserPreferences {
     this.preferredNotificationMethod = defaultNotificationMethod,
     this.requireCancellationConfirmation =
         defaultRequireCancellationConfirmation,
+    this.preferredLanguage = defaultPreferredLanguage,
   });
 
   static const NotificationMethod defaultNotificationMethod =
       NotificationMethod.none;
   static const bool defaultRequireCancellationConfirmation = true;
+  static const PreferredLanguage defaultPreferredLanguage =
+      PreferredLanguage.en;
 
   static const defaults = UserPreferences();
 
   final NotificationMethod preferredNotificationMethod;
   final bool requireCancellationConfirmation;
+  final PreferredLanguage preferredLanguage;
 
   UserPreferences copyWith({
     NotificationMethod? preferredNotificationMethod,
     bool? requireCancellationConfirmation,
-    bool? showSuccessSnackbars,
+    PreferredLanguage? preferredLanguage,
   }) {
     return UserPreferences(
       preferredNotificationMethod:
@@ -27,6 +31,7 @@ class UserPreferences {
       requireCancellationConfirmation:
           requireCancellationConfirmation ??
           this.requireCancellationConfirmation,
+      preferredLanguage: preferredLanguage ?? this.preferredLanguage,
     );
   }
 
@@ -34,6 +39,7 @@ class UserPreferences {
     return <String, dynamic>{
       'preferredNotificationMethod': preferredNotificationMethod.name,
       'requireCancellationConfirmation': requireCancellationConfirmation,
+      'preferredLanguage': preferredLanguage.code,
     };
   }
 
@@ -46,6 +52,7 @@ class UserPreferences {
         json['requireCancellationConfirmation'],
         defaultRequireCancellationConfirmation,
       ),
+      preferredLanguage: PreferredLanguage.fromCode(json['preferredLanguage']),
     );
   }
 
@@ -86,10 +93,34 @@ class UserPreferences {
     return other is UserPreferences &&
         other.preferredNotificationMethod == preferredNotificationMethod &&
         other.requireCancellationConfirmation ==
-            requireCancellationConfirmation;
+            requireCancellationConfirmation &&
+        other.preferredLanguage == preferredLanguage;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(preferredNotificationMethod, requireCancellationConfirmation);
+  int get hashCode => Object.hash(
+    preferredNotificationMethod,
+    requireCancellationConfirmation,
+    preferredLanguage,
+  );
+}
+
+enum PreferredLanguage {
+  en('en'),
+  esCo('es_CO');
+
+  const PreferredLanguage(this.code);
+
+  final String code;
+
+  static PreferredLanguage fromCode(dynamic value) {
+    if (value is String) {
+      return PreferredLanguage.values.firstWhere(
+        (item) => item.code == value,
+        orElse: () => UserPreferences.defaultPreferredLanguage,
+      );
+    }
+
+    return UserPreferences.defaultPreferredLanguage;
+  }
 }

@@ -7,6 +7,7 @@ import 'package:amaris_test/features/settings/domain/models/user_preferences.dar
 import 'package:amaris_test/features/settings/state/settings_maintenance_actions.dart';
 import 'package:amaris_test/features/settings/state/user_preferences_notifier.dart';
 import 'package:amaris_test/features/settings/state/user_preferences_selectors.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,6 +16,7 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tr = context.t;
     final currentPreferences = ref.watch(currentUserPreferencesProvider);
     final isPersistingPreferences = ref.watch(
       isPersistingUserPreferencesProvider,
@@ -28,7 +30,7 @@ class SettingsPage extends ConsumerWidget {
       next.whenOrNull(
         error: (error, stackTrace) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not save settings: $error')),
+            SnackBar(content: Text(tr.settings.saveError(error: '$error'))),
           );
         },
       );
@@ -39,29 +41,59 @@ class SettingsPage extends ConsumerWidget {
     return ListView(
       children: [
         _SectionCard(
-          title: 'User preferences',
-          description:
-              'Control default notification method and confirmation behavior.',
+          title: tr.settings.userPreferencesTitle,
+          description: tr.settings.userPreferencesDescription,
           child: Column(
             children: [
+              DropdownButtonFormField<PreferredLanguage>(
+                key: ValueKey(currentPreferences.preferredLanguage),
+                initialValue: currentPreferences.preferredLanguage,
+                decoration: InputDecoration(
+                  labelText: tr.settings.languageLabel,
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: PreferredLanguage.en,
+                    child: Text(tr.settings.languageEnglish),
+                  ),
+                  DropdownMenuItem(
+                    value: PreferredLanguage.esCo,
+                    child: Text(tr.settings.languageSpanishColombia),
+                  ),
+                ],
+                onChanged: !controlsEnabled
+                    ? null
+                    : (value) {
+                        if (value == null) {
+                          return;
+                        }
+
+                        unawaited(
+                          ref
+                              .read(userPreferencesNotifierProvider.notifier)
+                              .setPreferredLanguage(value),
+                        );
+                      },
+              ),
+              const SizedBox(height: AppSpacing.sm),
               DropdownButtonFormField<NotificationMethod>(
                 key: ValueKey(currentPreferences.preferredNotificationMethod),
                 initialValue: currentPreferences.preferredNotificationMethod,
-                decoration: const InputDecoration(
-                  labelText: 'Default notification method',
+                decoration: InputDecoration(
+                  labelText: tr.settings.defaultNotificationMethodLabel,
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: NotificationMethod.email,
-                    child: Text('Email'),
+                    child: Text(tr.settings.notificationEmail),
                   ),
                   DropdownMenuItem(
                     value: NotificationMethod.sms,
-                    child: Text('SMS'),
+                    child: Text(tr.settings.notificationSms),
                   ),
                   DropdownMenuItem(
                     value: NotificationMethod.none,
-                    child: Text('Ask me each time'),
+                    child: Text(tr.settings.notificationAskEachTime),
                   ),
                 ],
                 onChanged: !controlsEnabled
@@ -81,9 +113,9 @@ class SettingsPage extends ConsumerWidget {
               const SizedBox(height: AppSpacing.sm),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Require confirmation before cancellation'),
-                subtitle: const Text(
-                  'Show a confirmation dialog before canceling a subscription.',
+                title: Text(tr.settings.requireCancellationConfirmationTitle),
+                subtitle: Text(
+                  tr.settings.requireCancellationConfirmationSubtitle,
                 ),
                 value: currentPreferences.requireCancellationConfirmation,
                 onChanged: !controlsEnabled
@@ -106,9 +138,8 @@ class SettingsPage extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         _SectionCard(
-          title: 'Danger zone',
-          description:
-              'These actions change local data immediately. Confirmation is required.',
+          title: tr.settings.dangerZoneTitle,
+          description: tr.settings.dangerZoneDescription,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -116,23 +147,21 @@ class SettingsPage extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               _DangerActionTile(
                 icon: Icons.restart_alt,
-                title: 'Reset portfolio data',
-                subtitle:
-                    'Removes all subscriptions and transaction history, then restores the initial balance.',
+                title: tr.settings.resetPortfolioTitle,
+                subtitle: tr.settings.resetPortfolioSubtitle,
                 isBusy: maintenanceState.isResettingPortfolio,
                 focusOrder: 1,
-                actionLabel: 'Reset portfolio',
+                actionLabel: tr.settings.resetPortfolioAction,
                 onPressed: () => _confirmAndResetPortfolio(context, ref),
               ),
               const SizedBox(height: AppSpacing.md),
               _DangerActionTile(
                 icon: Icons.tune,
-                title: 'Reset preferences',
-                subtitle:
-                    'Restores notification method and confirmation settings to defaults.',
+                title: tr.settings.resetPreferencesTitle,
+                subtitle: tr.settings.resetPreferencesSubtitle,
                 isBusy: maintenanceState.isResettingPreferences,
                 focusOrder: 2,
-                actionLabel: 'Reset preferences',
+                actionLabel: tr.settings.resetPreferencesAction,
                 onPressed: () => _confirmAndResetPreferences(context, ref),
               ),
             ],
@@ -147,12 +176,12 @@ class SettingsPage extends ConsumerWidget {
     WidgetRef ref,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final tr = context.t;
     final confirmed = await _showDangerConfirmationDialog(
       context,
-      title: 'Reset portfolio data?',
-      message:
-          'This removes holdings and transaction history from this device and resets your balance to COP 500000.',
-      actionLabel: 'Reset portfolio',
+      title: tr.settings.resetPortfolioConfirmTitle,
+      message: tr.settings.resetPortfolioConfirmMessage,
+      actionLabel: tr.settings.resetPortfolioAction,
     );
     if (confirmed != true || !context.mounted) {
       return;
@@ -167,14 +196,16 @@ class SettingsPage extends ConsumerWidget {
       }
 
       messenger.showSnackBar(
-        const SnackBar(content: Text('Portfolio data reset')),
+        SnackBar(content: Text(tr.settings.resetPortfolioSuccess)),
       );
     } on Object catch (error) {
       if (!context.mounted) {
         return;
       }
 
-      messenger.showSnackBar(SnackBar(content: Text('Reset failed: $error')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(tr.settings.resetFailed(error: '$error'))),
+      );
     }
   }
 
@@ -183,12 +214,12 @@ class SettingsPage extends ConsumerWidget {
     WidgetRef ref,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final tr = context.t;
     final confirmed = await _showDangerConfirmationDialog(
       context,
-      title: 'Reset preferences?',
-      message:
-          'This restores notification method, cancellation confirmation, and success snackbar settings.',
-      actionLabel: 'Reset preferences',
+      title: tr.settings.resetPreferencesConfirmTitle,
+      message: tr.settings.resetPreferencesConfirmMessage,
+      actionLabel: tr.settings.resetPreferencesAction,
     );
     if (confirmed != true || !context.mounted) {
       return;
@@ -203,14 +234,16 @@ class SettingsPage extends ConsumerWidget {
       }
 
       messenger.showSnackBar(
-        const SnackBar(content: Text('Preferences reset')),
+        SnackBar(content: Text(tr.settings.resetPreferencesSuccess)),
       );
     } on Object catch (error) {
       if (!context.mounted) {
         return;
       }
 
-      messenger.showSnackBar(SnackBar(content: Text('Reset failed: $error')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(tr.settings.resetFailed(error: '$error'))),
+      );
     }
   }
 
@@ -231,7 +264,7 @@ class SettingsPage extends ConsumerWidget {
             Text(message),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'This action cannot be undone on this device.',
+              context.t.settings.cannotUndo,
               style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
                 color: Theme.of(dialogContext).colorScheme.error,
                 fontWeight: FontWeight.w600,
@@ -242,10 +275,10 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           Semantics(
             button: true,
-            label: 'Keep current data and close confirmation dialog',
+            label: context.t.settings.keepDataSemantics,
             child: TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Keep data'),
+              child: Text(context.t.settings.keepData),
             ),
           ),
           Semantics(
@@ -331,7 +364,7 @@ class _DangerZoneHintBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              'Use these actions only when you intentionally need a clean slate on this device.',
+              context.t.settings.dangerZoneHint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
