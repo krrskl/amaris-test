@@ -6,6 +6,7 @@ import 'package:amaris_test/core/domain/repositories/portfolio_repository.dart';
 import 'package:amaris_test/features/funds/presentation/funds_page.dart';
 import 'package:amaris_test/features/funds/state/funds_providers.dart';
 import 'package:amaris_test/features/portfolio/state/portfolio_notifier.dart';
+import 'package:amaris_test/i18n/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,7 @@ void main() {
   testWidgets(
     'subscription dialog shows inline error and then completes successfully',
     (tester) async {
+      LocaleSettings.setLocaleSync(AppLocale.en);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -39,7 +41,9 @@ void main() {
               ),
             ),
           ],
-          child: const MaterialApp(home: Scaffold(body: FundsPage())),
+          child: TranslationProvider(
+            child: const MaterialApp(home: Scaffold(body: FundsPage())),
+          ),
         ),
       );
 
