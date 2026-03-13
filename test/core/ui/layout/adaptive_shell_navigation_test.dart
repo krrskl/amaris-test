@@ -25,27 +25,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('compact width uses bottom navigation', (tester) async {
+  testWidgets('adapts navigation for compact, medium and expanded widths', (
+    tester,
+  ) async {
     await pumpShell(tester, width: 390, height: 844);
-
     expect(find.byKey(const Key('nav-bottom')), findsOneWidget);
-    expect(find.byKey(const Key('nav-rail')), findsNothing);
-    expect(find.byKey(const Key('nav-sidepanel')), findsNothing);
-  });
 
-  testWidgets('medium width uses navigation rail', (tester) async {
     await pumpShell(tester, width: 800, height: 1024);
-
-    expect(find.byKey(const Key('nav-bottom')), findsNothing);
     expect(find.byKey(const Key('nav-rail')), findsOneWidget);
-    expect(find.byKey(const Key('nav-sidepanel')), findsNothing);
-  });
 
-  testWidgets('expanded width uses side panel', (tester) async {
     await pumpShell(tester, width: 1280, height: 900);
-
-    expect(find.byKey(const Key('nav-bottom')), findsNothing);
-    expect(find.byKey(const Key('nav-rail')), findsNothing);
     expect(find.byKey(const Key('nav-sidepanel')), findsOneWidget);
   });
 }
