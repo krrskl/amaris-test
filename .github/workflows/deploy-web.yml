@@ -46,6 +46,7 @@ jobs:
       contents: read
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      SST_STAGE: ${{ vars.SST_STAGE || 'production' }}
 
     steps:
       - name: Checkout
@@ -66,7 +67,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
           cache-dependency-path: aws/pnpm-lock.yaml
 
@@ -88,4 +89,4 @@ jobs:
 
       - name: Deploy
         working-directory: aws
-        run: pnpm exec sst deploy --region "$AWS_REGION"
+        run: pnpm exec sst deploy --stage "$SST_STAGE"
