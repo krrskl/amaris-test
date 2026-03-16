@@ -111,6 +111,37 @@ class SettingsPage extends ConsumerWidget {
                       },
               ),
               const SizedBox(height: AppSpacing.sm),
+              DropdownButtonFormField<FundsDataSource>(
+                key: ValueKey(currentPreferences.fundsDataSource),
+                initialValue: currentPreferences.fundsDataSource,
+                decoration: InputDecoration(
+                  labelText: tr.settings.fundsSourceLabel,
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: FundsDataSource.localMock,
+                    child: Text(tr.settings.fundsSourceLocalMock),
+                  ),
+                  DropdownMenuItem(
+                    value: FundsDataSource.api,
+                    child: Text(tr.settings.fundsSourceApi),
+                  ),
+                ],
+                onChanged: !controlsEnabled
+                    ? null
+                    : (value) {
+                        if (value == null) {
+                          return;
+                        }
+
+                        unawaited(
+                          ref
+                              .read(userPreferencesNotifierProvider.notifier)
+                              .setFundsDataSource(value),
+                        );
+                      },
+              ),
+              const SizedBox(height: AppSpacing.sm),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: Text(tr.settings.requireCancellationConfirmationTitle),

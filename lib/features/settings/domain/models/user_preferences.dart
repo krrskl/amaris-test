@@ -6,6 +6,7 @@ class UserPreferences {
     this.requireCancellationConfirmation =
         defaultRequireCancellationConfirmation,
     this.preferredLanguage = defaultPreferredLanguage,
+    this.fundsDataSource = defaultFundsDataSource,
   });
 
   static const NotificationMethod defaultNotificationMethod =
@@ -13,17 +14,21 @@ class UserPreferences {
   static const bool defaultRequireCancellationConfirmation = true;
   static const PreferredLanguage defaultPreferredLanguage =
       PreferredLanguage.en;
+  static const FundsDataSource defaultFundsDataSource =
+      FundsDataSource.localMock;
 
   static const defaults = UserPreferences();
 
   final NotificationMethod preferredNotificationMethod;
   final bool requireCancellationConfirmation;
   final PreferredLanguage preferredLanguage;
+  final FundsDataSource fundsDataSource;
 
   UserPreferences copyWith({
     NotificationMethod? preferredNotificationMethod,
     bool? requireCancellationConfirmation,
     PreferredLanguage? preferredLanguage,
+    FundsDataSource? fundsDataSource,
   }) {
     return UserPreferences(
       preferredNotificationMethod:
@@ -32,6 +37,7 @@ class UserPreferences {
           requireCancellationConfirmation ??
           this.requireCancellationConfirmation,
       preferredLanguage: preferredLanguage ?? this.preferredLanguage,
+      fundsDataSource: fundsDataSource ?? this.fundsDataSource,
     );
   }
 
@@ -40,6 +46,7 @@ class UserPreferences {
       'preferredNotificationMethod': preferredNotificationMethod.name,
       'requireCancellationConfirmation': requireCancellationConfirmation,
       'preferredLanguage': preferredLanguage.code,
+      'fundsDataSource': fundsDataSource.name,
     };
   }
 
@@ -53,6 +60,7 @@ class UserPreferences {
         defaultRequireCancellationConfirmation,
       ),
       preferredLanguage: PreferredLanguage.fromCode(json['preferredLanguage']),
+      fundsDataSource: _parseFundsDataSource(json['fundsDataSource']),
     );
   }
 
@@ -84,6 +92,17 @@ class UserPreferences {
     return fallback;
   }
 
+  static FundsDataSource _parseFundsDataSource(dynamic value) {
+    if (value is String) {
+      return FundsDataSource.values.firstWhere(
+        (item) => item.name == value,
+        orElse: () => defaultFundsDataSource,
+      );
+    }
+
+    return defaultFundsDataSource;
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -94,7 +113,8 @@ class UserPreferences {
         other.preferredNotificationMethod == preferredNotificationMethod &&
         other.requireCancellationConfirmation ==
             requireCancellationConfirmation &&
-        other.preferredLanguage == preferredLanguage;
+        other.preferredLanguage == preferredLanguage &&
+        other.fundsDataSource == fundsDataSource;
   }
 
   @override
@@ -102,8 +122,11 @@ class UserPreferences {
     preferredNotificationMethod,
     requireCancellationConfirmation,
     preferredLanguage,
+    fundsDataSource,
   );
 }
+
+enum FundsDataSource { localMock, api }
 
 enum PreferredLanguage {
   en('en'),

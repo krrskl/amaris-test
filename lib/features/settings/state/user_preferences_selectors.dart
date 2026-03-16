@@ -35,6 +35,11 @@ bool isPersistingUserPreferences(Ref ref) {
   );
 }
 
+final userFundsDataSourcePreferenceProvider = Provider<FundsDataSource>((ref) {
+  final preferences = ref.watch(currentUserPreferencesProvider);
+  return preferences.fundsDataSource;
+});
+
 @riverpod
 AppLocale preferredAppLocale(Ref ref) {
   final preferences = ref.watch(currentUserPreferencesProvider);

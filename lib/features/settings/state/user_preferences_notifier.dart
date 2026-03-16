@@ -58,6 +58,15 @@ class UserPreferencesNotifier extends AsyncNotifier<UserPreferences> {
     await LocaleSettings.setLocale(locale);
   }
 
+  Future<void> setFundsDataSource(FundsDataSource value) async {
+    final current = state.valueOrNull ?? await future;
+    if (current.fundsDataSource == value) {
+      return;
+    }
+
+    await _persist(current.copyWith(fundsDataSource: value));
+  }
+
   Future<void> resetPreferences() async {
     state = const AsyncLoading<UserPreferences>().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
